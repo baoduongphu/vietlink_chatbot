@@ -26,15 +26,15 @@ VietLink RAG turns an initial request into a clearer, implementation-ready reque
    **Windows PowerShell**
 
    ```powershell
-   git clone https://github.com/<your-org>/<your-repository>.git
-   cd <your-repository>
+   git clone https://github.com/baoduongphu/vietlink_chatbot.git
+   cd vietlink_chatbot
    ```
 
    **macOS or Linux**
 
    ```bash
-   git clone https://github.com/<your-org>/<your-repository>.git
-   cd <your-repository>
+   git clone https://github.com/baoduongphu/vietlink_chatbot.git
+   cd vietlink_chatbot
    ```
 
 2. Create a virtual environment and install dependencies.
