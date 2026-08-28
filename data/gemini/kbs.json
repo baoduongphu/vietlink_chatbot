@@ -1,0 +1,231 @@
+[
+  {
+    "knowledge_id": "KB-1",
+    "title": "Technical Workaround - Missing Pain Point",
+    "category": "Missing Context",
+    "description": "When asking for a technical workaround, explicitly state the underlying pain point (e.g., UI bugs, backend load, or dev-tools clutter) to ensure the proposed solution addresses the actual problem.",
+    "intent": "Ensure proposed solutions address the user's actual annoyance rather than standard application bugs.",
+    "priority": "Low",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "User asks for a workaround for a technical behavior without stating their underlying pain point.",
+    "detection_rules": "User requests a fix for a specific technical symptom but rejects the standard solution based on unstated criteria like tooling cleanliness.",
+    "clarification_questions": [
+      "What is the specific impact of this behavior that you are trying to avoid?"
+    ],
+    "recommendation": "State both the technical behavior you want to prevent and your primary underlying pain point or goal from the beginning.",
+    "expected_outcome": "Responders provide targeted advice that solves the specific annoyance rather than generic solutions.",
+    "source": [
+      {
+        "conversation_id": "Case 1",
+        "root_cause": "The user stated the technical behavior they wanted to stop but omitted their underlying pain point. The responder assumed the standard pain point (application state bugs or backend load) rather than a developer experience issue (DevTools clutter), leading to misaligned advice.",
+        "evidence": "User 1: \"Runnig this code will execute twice the API call... Is there any workaround for preventing this behaviour while still keeping the `<StrictMode />` on?\"\nUser 2: \"Usually you’d want to have some kind of cleanup for your effect. It should either cancel your fetch...\"\nUser 1: \"I do have a cleanup for my effect, but I still see my request in a canceled state in dev tools... making dev tools cluttered\"",
+        "case_summary": "User 1 asked how to prevent a double API call but omitted that their primary issue was network tab clutter in DevTools, resulting in misaligned standard advice."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-2",
+    "title": "System Migration - Missing Broader Context",
+    "category": "Missing Context",
+    "description": "When asking for help with a specific issue encountered during a larger system migration or upgrade, mention the broader context and constraints so responders can provide appropriate strategic advice.",
+    "intent": "Prevent users from taking drastic, suboptimal actions like unnecessary downgrades due to a lack of aligned strategic advice.",
+    "priority": "Medium",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Planning/Decision",
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "User reports a drastic action or decision (like downgrading) without prior context on their broader constraints.",
+    "detection_rules": "User announces a major setback or fallback decision in response to a localized issue during an upgrade.",
+    "clarification_questions": [
+      "What are the broader project constraints or timelines influencing this decision?"
+    ],
+    "recommendation": "Mention project constraints, timelines, and the context of major upgrades when discussing specific localized issues.",
+    "expected_outcome": "Responders can offer optimal strategic advice aligned with project realities.",
+    "source": [
+      {
+        "conversation_id": "Case 2",
+        "root_cause": "User 1 asked about a specific, localized issue without mentioning the broader context: they were evaluating a major framework upgrade under strict time constraints. Because User 2 lacked this context, they couldn't offer the optimal strategic advice (upgrade but disable Strict Mode temporarily) until User 1 announced a drastic, suboptimal decision (downgrading).",
+        "evidence": "User 1: \"For now ,I just downgraded to v17.\"\nUser 2: \"“For now ,I just downgraded to v17”. Why? If there is a problem, you can just remove Strict Mode from your app.\"\nUser 1: \"For now we do not have time to address the \"issues\" of useEffect double call (and maybe other changes related to v18)...\"",
+        "case_summary": "User 1 announced they downgraded to v17 due to time constraints on a v18 upgrade, which initially confused User 2 who lacked this project context."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-3",
+    "title": "Missing Context / Framework Bug Report vs Use Case",
+    "category": "Missing Context",
+    "description": "When reporting unexpected behavior in a framework, explicitly state the intended use case, as the behavior may be expected for the tool's actual purpose but problematic for your specific application.",
+    "intent": "Without the use case, the conversation devolves into a debate about framework mechanics and expected behavior, delaying feedback on the user's actual implementation strategy.",
+    "priority": "Medium",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "User reports unexpected framework behavior or bug without mentioning their specific use case or architectural goal.",
+    "detection_rules": "A user describes an API or hook behavior causing an issue for them, but does not explain what they are trying to build with it until later in the conversation.",
+    "clarification_questions": [
+      "What is your underlying goal or use case for this feature?",
+      "How are you utilizing this ID or value in your implementation?"
+    ],
+    "recommendation": "State both the observed behavior and the intended use case or architectural approach in the initial request.",
+    "expected_outcome": "Responders can evaluate the actual implementation strategy directly, preventing wasted discussion on framework mechanics.",
+    "source": [
+      {
+        "conversation_id": "Case 1",
+        "root_cause": "The user reported a technical behavior as a bug without providing the context of their specific use case (an XY problem). Because the use case was hidden, responders evaluated the behavior against general framework mechanics rather than addressing whether the user's architectural approach was appropriate for the hook.",
+        "evidence": "User 1: \"useId is returning different IDs across renders of the same component instance without un-mounting.\"\nUser 1: \"For example, by keeping an external storage using the instance ID.\"",
+        "case_summary": "User 1 initially reports a changing ID as a framework bug without explaining their underlying goal, later revealing they are trying to use it as a persistent identifier for external storage."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-4",
+    "title": "Missing Context / Unsupported Technical Assertion",
+    "category": "Missing Context",
+    "description": "When claiming a severe technical consequence (like a memory leak or security flaw), provide the mechanism or an example to allow others to validate and address it.",
+    "intent": "While it could cause unnecessary alarm or confusion for readers, it is largely ignored by the other participants in this specific instance.",
+    "priority": "Low",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "User asserts a severe technical risk or negative consequence without any explanation, context, or code example.",
+    "detection_rules": "A standalone claim about a vulnerability or performance issue (e.g., memory leak) is made without supporting evidence or follow-up details.",
+    "clarification_questions": [
+      "Can you provide a code example or mechanism showing how this causes a memory leak?"
+    ],
+    "recommendation": "Provide the underlying mechanism, context, or code example whenever making a severe technical assertion.",
+    "expected_outcome": "Other participants can validate, understand, and properly address the claim rather than ignoring it or being confused.",
+    "source": [
+      {
+        "conversation_id": "Case 2",
+        "root_cause": "The speaker makes a severe technical assertion without providing the underlying mechanism or context, leaving others completely unable to validate, understand, or address the claim.",
+        "evidence": "User 1: \"It also makes it very easy to create memory leaks.\"",
+        "case_summary": "User 1 asserts that the useId behavior causes memory leaks but provides no explanation, context, or example of how this occurs."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-5",
+    "title": "Hook Validation Scope Undefined",
+    "category": "Undefined Scope",
+    "description": "When explaining a missing warning or bug in a framework, explicitly state whether the underlying rule applies to all similar entities (e.g., all hooks) to prevent users from assuming silent failures indicate valid code.",
+    "intent": "Prevent users from continuing to use invalid code patterns under the false assumption that they are valid due to a lack of framework warnings.",
+    "priority": "Medium",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "A user discusses a warning or bug regarding a specific framework hook or feature, leaving ambiguity about whether other similar features behave the same way.",
+    "detection_rules": "The response mentions a bug or missing warning for a single specific component or hook without clarifying if the rule applies globally to the entire category.",
+    "clarification_questions": [
+      "Does this rule apply to all similar hooks or only the one mentioned?"
+    ],
+    "recommendation": "Explicitly state whether the underlying rule applies to all similar entities to avoid assuming silent failures indicate valid code.",
+    "expected_outcome": "The user clearly understands that the restriction applies globally across all similar entities, avoiding future runtime bugs.",
+    "source": [
+      {
+        "conversation_id": "Case 1",
+        "root_cause": "User 2 scoped their explanation of the missing warning bug specifically to useEffect, which inadvertently created ambiguity about the status of other hooks like useState. This interacted with User 1's assumption that the absence of a framework warning implies the code pattern is valid.",
+        "evidence": "User 2: \"However, conditionally rendering useEffect hooks is currently not detected properly.\"\nUser 1: \"I can see this occurs with the useEffect hook but there are no warning messages while using useState hook\"\nUser 3: \"The problem is that neither of these patterns is supported. (You can’t call Hooks conditionally.) It’s just that we have some cases where warnings don’t show up properly.\"",
+        "case_summary": "User 2 explained that conditional hooks are unsupported but scoped it to `useEffect`, leading User 1 to mistakenly assume `useState` was valid because it lacked a warning."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-6",
+    "title": "Conflicting Reference Sample in UI Requirements",
+    "category": "Conflicting Requirement",
+    "description": "When providing reference examples for UI behavior, ensure the reference is technically compatible with the explicit constraints (e.g., item counts, looping rules) defined in the requirements.",
+    "intent": "If not clarified, this would cause endless rework loops where the Engineer tries to satisfy mathematically impossible constraints, leading to frustration and wasted time.",
+    "priority": "High",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving",
+      "Task/Action"
+    ],
+    "trigger": "Requesting a UI component with explicit constraints while providing a reference sample that behaves differently.",
+    "detection_rules": "A reference video, link, or sample is provided alongside specific numerical or functional constraints that conflict with the sample's visual behavior.",
+    "clarification_questions": [
+      "Does the reference sample accurately reflect the requested item count and constraints, or is it just for general styling?"
+    ],
+    "recommendation": "Explicitly state whether the reference sample takes precedence over numerical constraints or clarify how the visual effect should adapt to the given constraints.",
+    "expected_outcome": "Both the PM and the Engineer share an aligned, technically feasible understanding of how the UI component should behave.",
+    "source": [
+      {
+        "conversation_id": "1",
+        "root_cause": "The PM provided a reference sample that inherently contradicted the explicit numerical constraints in the requirements, assuming the visual effect could be decoupled from the item count.",
+        "evidence": "PM: \"- Display 3 video thumbnails... - Carousel does not loop\"\nPM: \"Could you replicate the behavior shown on the sample page?\"\nEngineer: \"To display it the same way as your recording, you need 8 items. However, with 3 items, the rotation will display them as in my recording.\"",
+        "case_summary": "The PM requested a carousel with exactly 3 items that does not loop, but expected it to visually behave exactly like a provided sample requiring 8 items."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-7",
+    "title": "Missing Boundary State in Non-Looping UI",
+    "category": "Missing Constraint",
+    "description": "When defining non-looping UI components, explicitly specify the expected visual behavior when the user reaches the boundaries (e.g., hiding elements, disabling buttons, or showing empty space).",
+    "intent": "If not clarified, the final product would have an unpolished user experience at the boundaries of the carousel, requiring late-stage bug fixes.",
+    "priority": "Medium",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving",
+      "Task/Action"
+    ],
+    "trigger": "Specifying a non-looping UI list or carousel without detailing the edge-case behavior at the start or end boundaries.",
+    "detection_rules": "Requirements state that a component should not loop, but omit instructions on how side elements, spacing, or visibility should be handled at the absolute ends.",
+    "clarification_questions": [
+      "How should the UI visually handle empty space or edge elements when the user reaches the end of the non-looping list?"
+    ],
+    "recommendation": "Include edge-case specifications detailing visibility and layout rules for the boundaries of non-looping components in the initial requirements.",
+    "expected_outcome": "The implementation correctly matches the expected visual boundary behavior on the first pass, avoiding late-stage adjustments.",
+    "source": [
+      {
+        "conversation_id": "2",
+        "root_cause": "The requirements failed to define the visual behavior for edge cases (reaching the end of a non-looping list), leaving the Engineer to rely on default library behaviors that didn't match the PM's unstated expectations.",
+        "evidence": "PM: \"- Carousel does not loop\"\nEngineer: \"However, with 3 items, the rotation will display them as in my recording. “three-items.webm”\"\nPM: \"When a side thumbnail moves to the center, the thumbnail on the opposite side should not be visible.\"",
+        "case_summary": "The initial requirements stated the carousel should not loop but did not specify how the UI should visually handle the empty space when scrolled to the end, leading to conflicting expectations."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-8",
+    "title": "Ambiguous Deliverable Format for Research Tasks",
+    "category": "Missing Format/Data Spec",
+    "description": "When assigning research or investigation tasks, explicitly state the required format of the deliverable (e.g., written document, architectural diagram, or working prototype).",
+    "intent": "While the PM implicitly accepted the prototype and moved directly to visual QA, the original research request was ignored. If not clarified, the project lacks documentation on why specific technical decisions were made.",
+    "priority": "Low",
+    "confidence": "Medium",
+    "status": "Draft",
+    "applicable_to": [
+      "Task/Action",
+      "Document/Communication"
+    ],
+    "trigger": "Assigning a research, investigation, or evaluation task without defining the expected output format.",
+    "detection_rules": "Task requests terms like 'research', 'propose', or 'investigation' without specifying document structures, report requirements, or delivery mediums.",
+    "clarification_questions": [
+      "Should the deliverable be a written report/document or a functional code prototype?"
+    ],
+    "recommendation": "Explicitly define the expected deliverable format (e.g., 'a written document detailing library selection and technical considerations') in the task description.",
+    "expected_outcome": "The assignee delivers the correct artifact (documentation vs. code) matching the project's tracking and documentation needs.",
+    "source": [
+      {
+        "conversation_id": "3",
+        "root_cause": "The expected format of the deliverable was not explicitly aligned. The Engineer interpreted \"propose an implementation approach\" as building a Proof of Concept (PoC), bypassing the requested written evaluation and library selection.",
+        "evidence": "PM: \"Research and propose an implementation approach including: - Library selection... - Any technical considerations\"\nPM: \"provide the investigation report for this ticket by 4/15.\"\nEngineer: \"I will try to record a screen slideshow of images... I've shared a record screen slideshow\"",
+        "case_summary": "The PM requested a written research report evaluating libraries and technical concerns, but the Engineer instead built a functional prototype and submitted screen recordings."
+      }
+    ]
+  }
+]

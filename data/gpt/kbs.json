@@ -1,0 +1,531 @@
+[
+  {
+    "knowledge_id": "KB-1",
+    "title": "Unclear requirements/constraints when asking to 'prevent' behavior",
+    "category": "Undefined Success Criteria / Missing Constraint",
+    "description": "Requests omit whether a desired change should stop actions from firing, stop them from completing, or only change how results appear (e.g., hide noise). They also omit whether stated constraints are hard or negotiable (and for how long), causing responders to propose solutions that don't match the requester's real goal.",
+    "intent": "Ensure responders and requesters clarify exact success criteria and constraint flexibility so advice directly addresses the user's real problem and simpler options aren't overlooked.",
+    "priority": "Medium",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving",
+      "Information/Advice",
+      "Planning/Decision"
+    ],
+    "trigger": "User asks to 'prevent' or 'stop' a behavior or states a constraint (e.g., 'keep X on') without specifying what 'prevent' means or whether the constraint is negotiable.",
+    "detection_rules": "Request uses verbs like 'prevent', 'stop', 'workaround' or gives hard-seeming constraints (e.g., 'keep StrictMode on') but does not state whether the goal is to stop firing, stop completion, suppress visibility (DevTools), or whether the constraint can be relaxed temporarily.",
+    "clarification_questions": [
+      "By 'preventing this behaviour', do you mean stop the request from firing, stop duplicate effects from completing, or just reduce/hide noise in DevTools?",
+      "Is the constraint (for example, keeping StrictMode on) a hard requirement or is it negotiable/temporary? If negotiable, for how long?"
+    ],
+    "recommendation": "When asking for a workaround or fix, explicitly state what 'prevent' should mean (stop firing vs stop completing vs hide DevTools noise) and indicate whether any stated constraints are hard or can be relaxed temporarily, including time limits.",
+    "expected_outcome": "Responses provide solutions that directly address the intended outcome and consider simpler, viable options earlier (avoiding misaligned advice and wasted troubleshooting).",
+    "source": [
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Undefined success criteria: “preventing this behaviour” was left open to interpretation (completion vs firing vs visibility), leading to advice that solved a different problem.",
+        "evidence": "“Is there any workaround for preventing this behaviour while still keeping the <StrictMode /> on?”\n“I do have a cleanup for my effect, but I still see my request in a canceled state in dev tools … making dev tools cluttered, half of them being canceled.”",
+        "case_summary": "The user asked for a workaround to 'prevent' behavior while keeping StrictMode on, but did not define what 'preventing' meant; the initial advice addressed cancellation/ignoring instead of the user's DevTools clutter concern."
+      },
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Missing constraint priority/rigidity: The requirement to keep StrictMode on wasn’t presented with its flexibility, causing advice to be scoped around a stricter constraint than necessary.",
+        "evidence": "“Is there any workaround for preventing this behaviour while still keeping the <StrictMode /> on?”\n“For now ,I just downgraded to v17.”\n“Yes I know, we’ll keep StrictMode on.”\n“I would personally recommend to update to 18 and temporarily turn the Strict Mode off …”\n“That’s a good suggestion, indeed.”",
+        "case_summary": "The requester framed 'keep StrictMode on' as a hard constraint but later accepted turning it off temporarily, revealing the constraint was negotiable and that earlier clarification could have unlocked simpler solutions."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-2",
+    "title": "Missing version/environment context",
+    "category": "Missing Context",
+    "description": "Requests omit critical environment/version details when the behavior depends on the software version, which can lead to guidance that targets the wrong version or references incorrect behavior.",
+    "intent": "Help responders give accurate, version-appropriate guidance by ensuring requesters state the exact version/environment and any planned upgrades/downgrades.",
+    "priority": "Low",
+    "confidence": "Medium",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "User describes behavior or asks for help without specifying the software/library version or noting planned version changes.",
+    "detection_rules": "The request lacks explicit version/environment fields while describing behavior known to differ across versions; follow-up reveals current version or upgrade/downgrade plans.",
+    "clarification_questions": [
+      "Which version of the software/library (e.g., React) are you using right now?",
+      "Are you planning to upgrade or downgrade soon, and if so, when?"
+    ],
+    "recommendation": "Include the exact version and any planned changes (upgrade/downgrade timing) in the initial question when behavior may depend on version.",
+    "expected_outcome": "Advice and references apply to the correct version, reducing misdirected or irrelevant recommendations.",
+    "source": [
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Missing context about environment/version, making it unclear whether advice should target v18 StrictMode behavior or v17.",
+        "evidence": "Initial question lacks version detail.\nLater: “I’ll definitely check it once I’ll plan to update to v18. For now ,I just downgraded to v17.”",
+        "case_summary": "The user's React version and upgrade/downgrade plans were unclear initially, which could affect which guidance applies until clarified later."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-3",
+    "title": "Ambiguous terminology for HTTP requests (fetch vs axios)",
+    "category": "Ambiguous Terminology",
+    "description": "Using generic terms like 'fetch' when the code uses a specific library (e.g., axios) leads to suggestions that imply different APIs or implementation details, because cancellation and control mechanisms differ between libraries.",
+    "intent": "Avoid giving incorrect implementation guidance by ensuring the terminology matches the actual tool/library in use.",
+    "priority": "Low",
+    "confidence": "Medium",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving",
+      "Information/Advice"
+    ],
+    "trigger": "User describes network request behavior or asks about canceling requests but uses generic terms (e.g., 'fetch') while code shows a specific library (e.g., axios).",
+    "detection_rules": "The code snippet or stack traces indicate a specific HTTP client (axios) but the textual description uses 'fetch' generically; or suggestions reference AbortController while the project uses axios cancellation tokens.",
+    "clarification_questions": [
+      "Are you using the Fetch API or a library like axios for these requests?",
+      "Which HTTP client/library is actually used in the code sample?"
+    ],
+    "recommendation": "State the actual HTTP client or library in use (e.g., axios, Fetch API) when asking about request cancellation or related behaviors so responders reference the correct APIs/patterns.",
+    "expected_outcome": "Responses include correct implementation details (e.g., axios tokens vs AbortController) and avoid suggesting incompatible approaches.",
+    "source": [
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Ambiguous terminology (“fetch” as generic request vs Fetch API), which can imply different implementation steps.",
+        "evidence": "Code uses axios.\nReplies refer to “cancel your fetch” and user says “I understand the fetch won’t hit the BE”.",
+        "case_summary": "The user’s code used axios, but replies talked about 'fetch' and cancelling fetch, which could lead to confusion about the correct cancellation mechanism to implement."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-4",
+    "title": "Ambiguous meaning of 'component instance' under StrictMode",
+    "category": "Ambiguous Terminology",
+    "description": "When a framework's lifecycle (e.g., throwaway/duplicate renders in StrictMode) differs from traditional component lifecycles, terms like 'component instance' become ambiguous; define such terms explicitly to avoid mismatched assumptions.",
+    "intent": "Prevent incorrect bug reports, wrong expectations for APIs like useId, and misguided fixes by ensuring participants share precise definitions of lifecycle-related terms.",
+    "priority": "High",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "User refers to 'the same component instance' or expects stable identity across renders without acknowledging framework render semantics (e.g., StrictMode).",
+    "detection_rules": "Messages that use phrases like 'same component instance', 'stable ID for the same instance', or note that useId returns different IDs across renders, without clarifying what is meant by 'instance' (render invocation vs mounted element vs component function identity).",
+    "clarification_questions": [
+      "When you say 'the same component instance', do you mean the same render invocation, the same mounted DOM element, or the same component function reference over time?"
+    ],
+    "recommendation": "When asking about lifecycle/identity issues, explicitly define what you mean by 'instance' (e.g., a particular render, a mounted element, or a persistent component identity) and state whether throwaway/duplicate renders (such as React StrictMode behavior) are expected.",
+    "expected_outcome": "Responders share a common definition of 'instance' and provide accurate explanations about useId and render behavior, reducing incorrect bug reports and fixes.",
+    "source": [
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Ambiguous terminology — “component instance” has no precise, shared meaning in React’s functional/StrictMode rendering model, where renders may be thrown away and remounted, blurring what counts as “the same instance.”",
+        "evidence": "“useId is returning different IDs across renders of the same component instance without un-mounting.”\n“under <StrictMode/>, component is rendered twice … so you get different ids.”",
+        "case_summary": "Reporter expected a stable ID for the 'same component instance' while others explained StrictMode causes double renders; disagreement arose from an unclear meaning of 'component instance'."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-5",
+    "title": "Missing environment context (StrictMode / SSR) leads to misattribution",
+    "category": "Missing Context",
+    "description": "Failing to state the execution environment (e.g., React StrictMode, development vs production mode, SSR/hydration) can cause observers to misattribute lifecycle behaviors (such as double invocations) to the wrong cause.",
+    "intent": "Ensure debugging and advice target the real cause (e.g., StrictMode double renders vs useEffect issues vs SSR hydration mismatches) by requiring environment details up front.",
+    "priority": "Medium",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "User reports unexpected double runs/behavior (e.g., 'useEffect runs twice') or invokes SSR/hydration guidance without stating whether StrictMode, dev mode, or SSR/hydration is enabled.",
+    "detection_rules": "User messages like 'useEffect always makes everything run 2 times' or 'Is it supposed to Mount twice?' or references SSR/hydration as a possible cause, while omitting whether the app/demo runs in React StrictMode, development mode, or uses server-side rendering/hydration.",
+    "clarification_questions": [
+      "Are you running the app in React StrictMode or development mode?",
+      "Is this example using server-side rendering and hydration, or is it client-only?"
+    ],
+    "recommendation": "Include explicit environment details when asking (whether React StrictMode is enabled, whether you're in dev or prod, and whether SSR/hydration is used) and provide a minimal reproducible example that shows the environment.",
+    "expected_outcome": "Responses will correctly attribute behavior to the actual cause (StrictMode double renders vs useEffect issues vs SSR/hydration mismatches) and give accurate debugging steps.",
+    "source": [
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Missing environment context — absence of details about StrictMode/dev mode leads to misattributing double invocation to useEffect rather than the rendering mode.",
+        "evidence": "“I think it has something to do with the useEffect. … for me useEffect always makes everything run 2 times … Is it supposed to Mount twice?”",
+        "case_summary": "User attributes double runs to useEffect and asks about mounting twice without clarifying whether StrictMode or dev mode is enabled, conflating the cause."
+      },
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Missing environment context — applying server-rendering guidance to a client-only example due to lack of clarity about whether hydration occurs.",
+        "evidence": "“useId … ‘With server rendering, useId requires an identical component tree on the server and the client…’ maybe this is the problem …”\n“In your demo, you are NOT doing hydration…”",
+        "case_summary": "User speculates SSR/hydration as a possible cause without establishing that SSR/hydration is in use; another user clarifies the demo is client-only."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-6",
+    "title": "Omitted function parameter in code example",
+    "category": "Missing Format/Data Spec",
+    "description": "Code examples must include required parameters and boilerplate; omitting function parameters (e.g., props) makes examples unclear or non-working when copied.",
+    "intent": "Prevent runtime errors and confusion by ensuring shared snippets include the necessary function signatures and parameter declarations.",
+    "priority": "Medium",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "A code snippet references variables like 'props' but the function signature or surrounding context needed to provide them is missing.",
+    "detection_rules": "Snippet contains lines such as 'const id = props.id' or similar, while the component function lacks a parameter (e.g., no 'props' or destructured parameters in the signature) and no comment explains where 'props' comes from.",
+    "clarification_questions": [
+      "Can you include the full component/function signature showing how props are passed?",
+      "Does the example intentionally omit parameters for brevity, or should it include them so the snippet runs as-is?"
+    ],
+    "recommendation": "When sharing code, include full function signatures and any required boilerplate (for example, 'function Inner(props) { ... }' or explicit destructuring) so examples run correctly when copied.",
+    "expected_outcome": "Recipients can copy and run the example without encountering undefined props or missing-parameter errors, reducing confusion.",
+    "source": [
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Missing format/data spec — the example omits the function parameter needed to access props in a React function component.",
+        "evidence": "“function Inner() { const id = props.id;  // Read stable ID from props instead … }”",
+        "case_summary": "The code sample reads props without declaring a props parameter in the component function, leaving how props is received unspecified."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-7",
+    "title": "Undefined success criteria for claimed workaround",
+    "category": "Undefined Success Criteria",
+    "description": "When proposing fixes or workarounds, state explicit success criteria and the constraints under which the solution is valid; assertions like 'behaves correctly' without criteria are ambiguous.",
+    "intent": "Avoid false confidence and misapplication of suggested workarounds by making their expected outcomes and limits explicit.",
+    "priority": "Low",
+    "confidence": "Medium",
+    "status": "Draft",
+    "applicable_to": [
+      "Information/Advice"
+    ],
+    "trigger": "An author claims a component or approach 'behaves correctly' or 'fixes' a problem but does not specify what 'correct' means or the conditions under which the claim holds.",
+    "detection_rules": "Messages containing phrases like 'behaves correctly in its own \"strict mode\" context' or 'this will fix it' without accompanying success criteria, scope, or test conditions.",
+    "clarification_questions": [
+      "What specific behavior or metrics should be considered 'correct' here?",
+      "Under what constraints or environments is this workaround intended to work?"
+    ],
+    "recommendation": "When suggesting a workaround, explicitly state the success criteria (what 'correct' means), the environments or assumptions required, and any limitations.",
+    "expected_outcome": "Readers can judge applicability and trust the workaround when conditions match, reducing overgeneralization and false confidence.",
+    "source": [
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Undefined success criteria — the statement asserts correctness without specifying criteria or scope, making its applicability unclear.",
+        "evidence": "“This way, each component behaves correctly in its own ‘strict mode’ context.”",
+        "case_summary": "A claim asserts components 'behave correctly' without defining what 'correct' means or the constraints under which the workaround is valid."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-8",
+    "title": "Misleading or inconsistent framework diagnostics for conditional Hooks",
+    "category": "Framework/Tool Side Effect",
+    "description": "Frameworks can emit misleading or inconsistent diagnostics for certain rule violations (e.g., conditional Hook usage), causing messages that don't accurately describe the actual user-code problem or failing to warn in some cases.",
+    "intent": "Avoid filing incorrect framework bugs and save developer time by verifying diagnostics against documented rules and minimal reproductions before assuming an internal framework issue.",
+    "priority": "High",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "User cites a framework/internal error message or warning and assumes it's a framework bug related to Hooks or similar rules.",
+    "detection_rules": "User quotes an internal/framework warning (e.g. 'Internal React error', 'Expected static flag was missing') or states 'there are no warning messages' and concludes the framework is at fault without providing a minimal reproduction or checking documented rules for the API (e.g. Hook rules).",
+    "clarification_questions": [
+      "Can you provide a minimal, self-contained reproduction (code sandbox or small repo) that demonstrates the warning/error?",
+      "Does your code follow the documented rules for Hooks (e.g., no conditional Hook calls)? If unsure, please paste the relevant component/function showing where the Hooks are used."
+    ],
+    "recommendation": "When reporting a suspected framework bug, include a minimal reproduction and explicitly state how your code follows or breaks the framework's documented rules (for example, show the exact Hook usage and whether it is conditional). Do not assume a framework bug solely from the wording or absence of warnings.",
+    "expected_outcome": "Reports differentiate true framework bugs from user-code rule violations; developers can reproduce the issue locally and determine whether the fix belongs in app code or the framework.",
+    "source": [
+      {
+        "conversation_id": "",
+        "root_cause": "The framework emitted a misleading/incorrect diagnostic that didn’t describe the actual problem (conditional Hooks), directing attention to React internals instead of user code.",
+        "evidence": "- \"Warning: Internal React error: Expected static flag was missing. Please notify the React team\"\n- \"This is also a wrong warning message — ideally the warning should explain the actual problem.\"",
+        "case_summary": "A maintainer called a React internal warning 'wrong' and explained the real issue was unsupported conditional Hook usage rather than an internal React bug."
+      },
+      {
+        "conversation_id": "",
+        "root_cause": "Incomplete/inconsistent detection of conditional Hook usage by the framework leads to false assurance when certain Hooks (e.g., useEffect) don’t trigger warnings.",
+        "evidence": "- \"there are no warning messages while using useState hook\"\n- \"conditionally rendering useEffect hooks is currently not detected properly. This bug is tracked in #24391\"\n- \"We have some cases where warnings don’t show up properly.\"",
+        "case_summary": "A user inferred correctness because useState produced no warning, but maintainers clarified that warnings are inconsistently reported for conditional Hook usage and absence of a warning is not proof of safety."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-9",
+    "title": "Unclear description of code changes (undefined scope)",
+    "category": "Undefined Scope",
+    "description": "Comparative or corrective statements about code behavior (e.g., 'using useState suppressed the warning') are ambiguous unless the exact location and nature of the change are specified (which file/component, replacement vs addition, before/after code).",
+    "intent": "Ensure others can reproduce and correctly interpret reported behavioral differences to avoid misleading conclusions and incorrect fixes.",
+    "priority": "Medium",
+    "confidence": "Medium",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving",
+      "Document/Communication"
+    ],
+    "trigger": "User reports that changing or using a specific API (e.g., 'using useState') made a warning disappear or changed behavior, without showing where or how the change was applied.",
+    "detection_rules": "Phrases like 'the warning will disappear if we used useState()' or 'there are no warning messages while using useState hook' appear without file/component names, before/after snippets, or indication whether the Hook was added, replaced, or relocated.",
+    "clarification_questions": [
+      "Exactly where in the code did you add or replace the Hook (file and component/function name)? Please paste the before-and-after snippets showing the change.",
+      "Was the Hook added in place of existing code, or was it introduced in a different scope (e.g., layout function vs page component)?"
+    ],
+    "recommendation": "When reporting that a code change affected behavior, include the exact location (file/component), and before-and-after code snippets that show whether the change replaced or added the code and the scope where it was applied.",
+    "expected_outcome": "Other readers can reproduce the reported behavior, determine whether the change is a valid workaround or a misleading artifact, and provide accurate guidance.",
+    "source": [
+      {
+        "conversation_id": "",
+        "root_cause": "Undefined scope and insufficiently specific description of the code change (“using useState”) left the location and nature of the modification unclear.",
+        "evidence": "- \"The warning will disappear if we used useState() hook.\"\n- \"I can see this occurs with the useEffect hook but there are no warning messages while using useState hook\"",
+        "case_summary": "Participants reported that switching to or using useState changed whether a warning appeared, but did not specify where or how the change was made, leaving ambiguity about the actual modification."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-10",
+    "title": "Typo/wording causing ambiguous navigation/state description",
+    "category": "Ambiguous Terminology",
+    "description": "Minor typographical or wording errors (wrong prepositions or nonstandard phrasing) can create unclear references to UI state or navigation sequences and momentarily confuse readers.",
+    "intent": "Reduce small misunderstandings that slow communication by ensuring navigation/state descriptions are clearly worded.",
+    "priority": "Low",
+    "confidence": "Medium",
+    "status": "Draft",
+    "applicable_to": [
+      "Document/Communication",
+      "General"
+    ],
+    "trigger": "A description of navigation or page state uses nonstandard phrasing or unexpected prepositions (e.g., 'about the page').",
+    "detection_rules": "Sentences describing navigation or page state contain phrasing that appears to be a typo (missing or wrong preposition) such as 'about the page' when 'on the about page' is likely intended.",
+    "clarification_questions": [
+      "Do you mean 'on the about page' or something else by 'about the page'?"
+    ],
+    "recommendation": "Proofread navigation and state descriptions to ensure prepositions and phrasing clearly reflect the intended sequence (e.g., 'on the about page' rather than 'about the page').",
+    "expected_outcome": "Descriptions of navigation/state are clearer and less likely to cause brief confusion among readers.",
+    "source": [
+      {
+        "conversation_id": "",
+        "root_cause": "Typographical/wording error creates an unclear reference to page state.",
+        "evidence": "- \"The warning will not fire if we are about the page and then navigate to the home page and back again to the about page.\"",
+        "case_summary": "A message used the phrase 'about the page' which is likely a typo for 'on the about page', creating temporary ambiguity about the navigation sequence."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-11",
+    "title": "Undefined 'investigation report' deliverable format",
+    "category": "Missing Format/Data Spec",
+    "description": "A deliverable name is used without defining its format, contents, or scope, allowing recipients to interpret and deliver different types of artifacts.",
+    "intent": "Ensure clear, shared expectations for deliverables to avoid misaligned outputs, delayed feedback, and rework.",
+    "priority": "Medium",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Planning/Decision",
+      "Task/Action",
+      "Document/Communication"
+    ],
+    "trigger": "A request asks for a deliverable using a generic term (e.g., 'report') without specifying format, contents, or scope.",
+    "detection_rules": "Request names a deliverable (report, investigation, etc.) but omits format, structure, required sections, acceptance criteria, or example outputs; respondent describes a different artifact type (e.g., prototype vs written report).",
+    "clarification_questions": [
+      "What format and contents do you expect for the investigation report (e.g., written summary, data tables, screenshots, a prototype video)?",
+      "Do you have a template, example, or acceptance criteria I should follow for this report?"
+    ],
+    "recommendation": "Specify the deliverable's format, required sections, expected contents, examples or a template, and acceptance criteria; attach a sample or template and confirm understanding before the deadline.",
+    "expected_outcome": "Recipient delivers the requested artifact type (e.g., a written/structured report) that matches expectations, reducing revisions and delays.",
+    "source": [
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "The term \"investigation report\" was not defined (format, contents, or scope), leading the engineer to interpret the request as a prototype demo rather than a written/structured report.",
+        "evidence": "- PM: \"would it be possible to provide the investigation report for this ticket by 4/15.\"\n- Engineer: \"I will try to record a screen slideshow of images for the video section on the homepage by the end of April 15th.\"",
+        "case_summary": "PM asked for an investigation report but the engineer planned to deliver a screen recording/prototype instead."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-12",
+    "title": "Missing referenced link or attachment",
+    "category": "Ambiguous Reference",
+    "description": "Using deictic or positional phrasing (e.g., 'the link below', 'attached') without including the actual link or file creates a broken reference and uncertainty about what to review.",
+    "intent": "Avoid minor delays and follow-ups by ensuring referenced resources are included and accessible.",
+    "priority": "Low",
+    "confidence": "Medium",
+    "status": "Draft",
+    "applicable_to": [
+      "Document/Communication"
+    ],
+    "trigger": "A message references 'the link below', 'attached', or similar but the link or attachment is not present.",
+    "detection_rules": "Text contains deictic phrases ('link below', 'attached video', 'see below') while the message has no URL, attachment, or inline media; recipients ask for the missing resource.",
+    "clarification_questions": [
+      "Could you share the link or attach the file you are referring to?"
+    ],
+    "recommendation": "Always include the explicit URL or attach the file inline when referencing it; avoid positional language and include a filename and brief description of the resource.",
+    "expected_outcome": "Reviewers have direct access to the referenced resource without requiring follow-up.",
+    "source": [
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Deictic/positional phrasing without including the actual link caused a broken reference.",
+        "evidence": "- Engineer: \"Please take a look at the link below for a screen recording of the carousel.\"",
+        "case_summary": "Engineer referenced 'the link below' but no link was included in the conversation."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-13",
+    "title": "Ambiguous motion term 'rotates' in UI requirements",
+    "category": "Ambiguous Terminology",
+    "description": "Vague motion words (e.g., 'rotates') are used without specifying the intended behavior, allowing multiple interpretations such as auto-advance, looping/wrap-around, or a visual 3D rotation.",
+    "intent": "Prevent implementing unintended behaviors (like looping or auto-advance) that contradict explicit requirements.",
+    "priority": "Medium",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Task/Action",
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "A requester uses terms like 'rotate/rotates' or similar motion descriptors without defining the exact behavior.",
+    "detection_rules": "Requirement text uses 'rotate'/'rotates' or similar and there exists conflicting or unclear constraints (e.g., 'does not loop'); no explicit statement about auto-advance, looping, or user-triggered behavior.",
+    "clarification_questions": [
+      "When you say 'rotates', do you mean auto-advance, wrap-around looping, a 3D spin animation, or manual change on swipe/click?",
+      "Should the carousel auto-advance or stop at the ends?"
+    ],
+    "recommendation": "Replace vague motion terms with explicit behavior statements: specify whether it auto-advances, loops/wraps, or only changes on user input; include examples or describe expected user interactions.",
+    "expected_outcome": "Implementation matches the intended motion behavior (no unintended looping or auto-advance) and aligns with other requirements.",
+    "source": [
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Ambiguous terminology (“rotates”) without specifying the intended motion/behavior.",
+        "evidence": "- PM: \"Could you make it look like it rotates?\"\n- Requirement: \"Carousel does not loop (stops at first/last item)\"",
+        "case_summary": "The term 'rotates' was ambiguous and could conflict with the explicit 'does not loop' requirement."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-14",
+    "title": "Multiple example samples without a single authoritative reference",
+    "category": "Undefined Success Criteria",
+    "description": "Multiple examples or samples are cited without designating one as the canonical reference or specifying which aspects to adopt, and samples may depend on different constraints (like item count) than the stated requirements.",
+    "intent": "Prevent divergent implementations, conflicting assumptions, and rework by defining a single source-of-truth and confirming feasibility against constraints.",
+    "priority": "High",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Planning/Decision",
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "A thread references more than one sample (URLs, recordings, codepens) or shows later approval without specifying which sample or which aspects are authoritative.",
+    "detection_rules": "Conversation contains two or more sample references (links, attachments, or videos) and lacks a statement specifying which is authoritative or which aspects to copy; follow-up messages reveal conflicting interpretations (e.g., required item counts or looping behavior).",
+    "clarification_questions": [
+      "Which sample should be treated as the canonical reference to follow?",
+      "Which specific behaviors or visual aspects from the canonical sample should be replicated, and which project constraints (e.g., item count, no-loop) still apply?"
+    ],
+    "recommendation": "When sharing examples, label one as the canonical sample and explicitly state which aspects to adopt and which constraints remain in force; validate sample behaviors against the project's constraints (e.g., item count, looping) before approval.",
+    "expected_outcome": "A single-source success criteria is documented, feasibility is confirmed against constraints, and implementations align with expectations, reducing rework.",
+    "source": [
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "No single source-of-truth defined; multiple examples cited without priority or scope of adoption.",
+        "evidence": "- PM (initial): \"Sample: 'https://kodocode.net/design-css-carousel/'\"\n- PM (later): \"Could you replicate the behavior shown on the sample page? I have attached the video from the sample page.\"\n- Engineer: \"Please confirm that you want me to follow this carousel, right? Or something else? 'https://codepen.io/dudleystorey/pen/DvZjLz'\"\n- PM: \"Thank you!! The behavior looks fine.\"",
+        "case_summary": "Multiple 'sample' references (a website, an attached video, then a CodePen) were introduced without establishing which one is authoritative."
+      },
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Attempting to replicate a sample that depends on a larger item count/looping without reconciling it with the stated constraints.",
+        "evidence": "- Requirement: \"Display 3 video thumbnails (images) in a carousel\" and \"Carousel does not loop\"\n- Engineer: \"…behavior looks fine in the Codepen, but it needs 6 items.\"\n- PM: \"Therefore, please display 3 items and do not loop…\"\n- Engineer: \"To display it the same way as your recording, you need 8 items. However, with 3 items, the rotation will display them as in my recording.\"",
+        "case_summary": "The desired visual effect from examples required more than 3 items and implied looping, conflicting with the backlog constraint of 3 items and no loop."
+      },
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Approval given without explicitly stating which aspects were approved; success criteria weren’t documented at approval time.",
+        "evidence": "- PM (re CodePen): \"Thank you!! The behavior looks fine.\"\n- PM (later): \"Therefore, please display 3 items and do not loop…\"",
+        "case_summary": "PM approved the sample behavior, then later reasserted constraints (3 items, no loop) that contradicted the approved sample."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-15",
+    "title": "Unclear 'above requirements' reference",
+    "category": "Ambiguous Reference",
+    "description": "Deictic phrasing (e.g., 'above requirements') in a thread with multiple or conflicting requirement sources creates ambiguity about which requirement is being referenced.",
+    "intent": "Avoid misleading stakeholders about completion status and prevent premature acceptance or rework by making requirement references explicit.",
+    "priority": "Medium",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Document/Communication",
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "Someone states they have met 'above requirements' or similar without quoting or linking a specific requirement in a thread containing multiple requirements.",
+    "detection_rules": "Message uses deictic terms (above/previous/this) referring to requirements without naming, quoting, or linking the specific requirement ID or text; the thread contains multiple requirement sources or samples.",
+    "clarification_questions": [
+      "Which specific requirement do you mean by 'above requirements'? Please quote the text or link the requirement ID or source."
+    ],
+    "recommendation": "Reference requirements explicitly by name, ID, or link and quote the relevant text when confirming completion or stating which requirements were met.",
+    "expected_outcome": "Clear understanding of which requirement is claimed complete, preventing misunderstandings and unnecessary follow-ups.",
+    "source": [
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Deictic phrasing (“above requirements”) in a thread that contains multiple, partially conflicting requirement sources.",
+        "evidence": "- Engineer: \"I have met the above requirements. If you would like the behavior shown on the sample page, I can change it tomorrow.\"",
+        "case_summary": "Engineer claimed to have met 'above requirements' but it's unclear which requirements were meant."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-16",
+    "title": "Conflicting instruction: 'fullscreen' plus overlay background",
+    "category": "Conflicting Requirement",
+    "description": "Requirements mix distinct UI patterns (true fullscreen using the Fullscreen API vs. in-page modal overlay/lightbox) which are incompatible unless behavior is explicitly defined.",
+    "intent": "Avoid major rework and incorrect architectural choices by choosing and specifying a single display pattern and its expected controls/behavior.",
+    "priority": "High",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving",
+      "Information/Advice"
+    ],
+    "trigger": "A requirement simultaneously asks for 'fullscreen' behavior and an in-page overlay background or otherwise mixes display patterns.",
+    "detection_rules": "Requirement text includes both 'fullscreen' and 'overlay' or requests full-screen behavior plus an in-page overlay; there is no clarification about which pattern to use or how controls should behave.",
+    "clarification_questions": [
+      "When you say 'opens the video in fullscreen with a 70% opacity overlay', do you mean use the browser Fullscreen API (true fullscreen) or show a modal/lightbox overlay within the page? Which controls and closing behavior do you expect?"
+    ],
+    "recommendation": "Specify one display pattern (fullscreen via API or modal overlay) and define controls, close/escape behavior, and expected stacking/overlay details to avoid incompatible directives.",
+    "expected_outcome": "Implementation uses the intended display pattern and avoids architecture mismatches between fullscreen and overlay approaches.",
+    "source": [
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Conflicting terminology mixing two distinct UI patterns (true fullscreen vs modal overlay/lightbox).",
+        "evidence": "- Requirement: \"Clicking 'Watch Video' opens the video in fullscreen with a 70% opacity black overlay background\"",
+        "case_summary": "The requirement mixed 'fullscreen' and overlay, which are typically incompatible UI patterns."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-17",
+    "title": "Missing platform-specific control requirements (arrow buttons on mobile)",
+    "category": "Missing Constraint",
+    "description": "Platform-specific constraints for controls (e.g., whether arrow buttons should appear on mobile vs desktop) are not specified, leaving implementation and UX decisions unclear.",
+    "intent": "Ensure consistent UX and avoid minor rework by clarifying per-platform control requirements up front.",
+    "priority": "Medium",
+    "confidence": "Medium",
+    "status": "Draft",
+    "applicable_to": [
+      "Planning/Decision",
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "Requirements mention controls (e.g., left/right arrows) but do not state platform applicability or mobile behavior.",
+    "detection_rules": "Requirement references control elements (left/right arrows) and the discussion includes platform-specific recordings or differences, but there is no explicit statement about whether those controls should exist on mobile, desktop, or both.",
+    "clarification_questions": [
+      "Should arrow buttons be available on mobile, or should mobile use swipe-only controls? Do desktop and mobile share the same controls?"
+    ],
+    "recommendation": "Specify per-platform control requirements (for example: arrows on desktop only; swipe-only on mobile) and include recordings or samples for each platform to illustrate expected behavior.",
+    "expected_outcome": "Implementation aligns controls to platform expectations, reducing rework and improving mobile UX.",
+    "source": [
+      {
+        "conversation_id": "{conversation_id}",
+        "root_cause": "Platform-specific constraints for controls weren’t specified.",
+        "evidence": "- Requirement: \"Users can also switch videos using left/right arrow buttons\"\n- Later discussion centers on desktop and mobile recordings without clarifying button presence on mobile.",
+        "case_summary": "It was unclear whether arrow buttons are required on mobile or only on desktop, affecting implementation and UX."
+      }
+    ]
+  }
+]

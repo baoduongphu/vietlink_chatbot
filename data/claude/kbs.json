@@ -1,0 +1,463 @@
+[
+  {
+    "knowledge_id": "KB-1",
+    "title": "Ambiguous problem statement hides actual goal in technical troubleshooting",
+    "category": "Ambiguous Reference / Undefined Success Criteria",
+    "description": "When reporting a technical \"behaviour\" you want to prevent, the term may refer to either the functional effect (e.g., duplicate API execution) or its observable side-effects (e.g., network panel clutter, logs). Without specifying which aspect is the actual problem, responders may provide solutions optimized for the wrong outcome. Similarly, stating only the mechanism to stop (e.g., \"prevent double calls\") rather than the desired end-state (e.g., \"keep dev tools readable for debugging\") causes advice to miss the true success criterion.",
+    "intent": "Clarify the actual problem and success criteria early, avoiding multiple rounds of misdirected advice and ensuring responders optimize for the correct outcome.",
+    "priority": "Medium",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "User reports wanting to 'prevent' or 'avoid' a behaviour but the scope (functional vs. observable) or the underlying constraint/goal is unclear.",
+    "detection_rules": "Watch for: (1) vague problem statements using words like 'behaviour,' 'this issue,' or 'this problem' without specifying functional vs. side-effect; (2) advice offered that addresses one aspect (e.g., cleanup code) while the real concern is different (e.g., debug visibility); (3) the user clarifying their actual goal only after receiving initial advice.",
+    "clarification_questions": [
+      "Are you trying to stop the action from happening at all, or just make it less visible/noisy in your dev tools?",
+      "What does 'solved' look like for you — what is the end-state you want to achieve?",
+      "Is the problem the functional duplication itself, or how it appears in logs/network panel/console?"
+    ],
+    "recommendation": "When describing a problem, separate the symptom from the goal: state what you observe (e.g., 'I see duplicate requests in the network panel'), what the impact is (e.g., 'it makes debugging harder'), and what success looks like (e.g., 'I want to see only one request'). Explicitly mention any constraints that influence your preferred solution (time, scope of changes, risk tolerance).",
+    "expected_outcome": "Responders immediately understand whether the issue is functional or cosmetic, what the user has already tried, and what outcome is actually desired. Advice targets the real problem from the first response.",
+    "source": [
+      {
+        "conversation_id": "Case 1 & Case 2 (merged)",
+        "root_cause": "User's opening question ('Is there any workaround for preventing this behaviour') did not specify whether 'behaviour' referred to the visible network entries in dev tools or the actual duplicate API execution. The word 'behaviour' was interpreted as functional duplication, leading to advice about cleanup that the user had already implemented. The initial request framed the goal as 'preventing' the double call (implying elimination), whereas the underlying success criterion was 'keep dev tools readable.' The undefined success criterion caused advice aimed at the wrong outcome.",
+        "evidence": "User 1: 'I do have a cleanup for my effect, but I still see my request in a canceled state in dev tools' | User 2 (earlier): 'It should either cancel your fetch or make sure you ignore its result by setting a variable inside your effect.' | User 1: 'preventing this behaviour' | User 1 (later): 'this makes harder to debug on dev tools (looking at my requests)'",
+        "case_summary": "User reported wanting to prevent a 'behaviour' but did not clarify whether the problem was the functional duplication or its visibility in dev tools. Advice addressed cleanup (already implemented) rather than the actual concern (debug-panel clutter), requiring clarification after the first advice cycle."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-2",
+    "title": "Decision stated without underlying constraint causes apparent irrationality",
+    "category": "Missing Context",
+    "description": "When announcing a decision that seems disproportionate or inefficient relative to the stated problem, the decision-maker often has an unstated constraint (e.g., time pressure, migration risk, scope limitations) that justifies it. Omitting this context makes the decision appear irrational or poorly reasoned, prompting unnecessary challenge and clarification.",
+    "intent": "Provide sufficient context for decisions to be understood and evaluated fairly, reducing confusion and unnecessary questioning.",
+    "priority": "Low",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Planning/Decision"
+    ],
+    "trigger": "User announces a decision that appears to be a workaround, downgrade, or suboptimal choice without explaining why that choice was preferred.",
+    "detection_rules": "Watch for: (1) a stated action that seems inefficient or excessive relative to the stated problem; (2) follow-up questions like 'Why did you choose that?' or 'That seems like overkill'; (3) the user later revealing a constraint (time, risk, scope) that was not in the original statement.",
+    "clarification_questions": [
+      "What constraints or trade-offs led you to choose that approach?",
+      "Are there other factors beyond the immediate problem that influenced your decision?"
+    ],
+    "recommendation": "When announcing a decision, briefly include the constraint or broader concern that motivated it. For example, instead of 'I downgraded to v17,' say 'I downgraded to v17 because I don't have time to address the broader v18 migration right now.'",
+    "expected_outcome": "The decision is understood as reasonable given its full context, reducing unnecessary follow-up questions and making the trade-off explicit for future reference.",
+    "source": [
+      {
+        "conversation_id": "Case 3",
+        "root_cause": "User stated an action ('downgraded to v17') without stating the underlying constraint driving it (no time to address v18-wide changes / migration bug risk). The missing rationale made the action appear irrational relative to the discussed problem, prompting a challenge.",
+        "evidence": "User 1: 'For now, I just downgraded to v17.' | User 2: 'Why? If there is a problem, you can just remove Strict Mode from your app.'",
+        "case_summary": "User announced a downgrade to v17 without explaining the constraint (time pressure, migration risk) that motivated it, causing the decision to appear disproportionate and prompting an unnecessary clarifying question."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-3",
+    "title": "Misattributed Root Cause in Hook Behavior",
+    "category": "Ambiguous Terminology (misattributed root cause)",
+    "description": "When reporting observed symptom changes, separate the observed symptom from the assumed cause by isolating variables before attributing behavior to a specific component or hook. A symptom may be caused by the surrounding execution context (e.g., StrictMode double-invocation) rather than the component itself.",
+    "intent": "Prevent early investigation efforts from being misdirected toward irrelevant documentation or hook-specific issues when the root cause lies in the execution environment.",
+    "priority": "Medium",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "A user reports unexpected behavior of a specific hook or component and attributes it directly to that hook/component without testing the behavior in isolation.",
+    "detection_rules": "The report uses language like 'Hook X is returning/doing Y' without first confirming whether Hook X behaves the same way in a different context (e.g., without StrictMode, with hydration, etc.). Look for assumed cause stated as fact rather than hypothesis.",
+    "clarification_questions": [
+      "Does the behavior occur only with this specific hook, or does it also occur when using a different hook or plain state in the same context?",
+      "What execution context are you running this in (e.g., development mode, StrictMode, hydration, server rendering)? Does the behavior change if you remove or change the context?"
+    ],
+    "recommendation": "Before attributing behavior to a specific hook, create a minimal test that isolates each variable (hook vs. context). Report the observed symptom, the isolated variable that was changed, and the result—then propose a cause.",
+    "expected_outcome": "Problem reports will clearly distinguish observed symptoms from their root causes, allowing responders to target relevant fixes or documentation without wasted investigation of red herrings.",
+    "source": [
+      {
+        "conversation_id": "case_1",
+        "root_cause": "User 1 attributed an observed symptom to a specific hook without isolating whether the hook or the surrounding execution context (StrictMode double-invocation) was the cause. The problem statement conflated 'what changed' with 'what caused it.'",
+        "evidence": "User 1: 'useId is returning different IDs across renders of the same component instance without un-mounting.' User 4: 'In your demo, you are NOT doing hydration and also under `<StrictMode/>` so you get different ids... This is not about `useId()`, if you switch to `const [id] = useState(...)`, you still get the unstable ids.'",
+        "case_summary": "User 1 framed ID instability as a useId-specific bug, but User 4 demonstrated the behavior is a general StrictMode artifact, not hook-specific."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-4",
+    "title": "Applying Documentation Without Verifying Preconditions",
+    "category": "Missing Context",
+    "description": "When matching documentation or known patterns to a reported problem, verify that the documented preconditions (dependencies, configurations, execution modes) actually hold in the observed scenario before proposing the documented solution as applicable.",
+    "intent": "Reduce false leads and wasted investigation by ensuring documentation is applied only to scenarios where its preconditions are met.",
+    "priority": "Medium",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving",
+      "Information/Advice"
+    ],
+    "trigger": "A responder cites documentation or a known pattern as a possible explanation for a reported issue without first confirming the documented preconditions are present.",
+    "detection_rules": "Look for language like 'the docs say X happens when Y, and maybe that's the problem' without confirmation that Y is actually occurring. The responder may even self-admit uncertainty (e.g., 'I don't know what [term from docs] is').",
+    "clarification_questions": [
+      "What is the documented precondition for this behavior (e.g., server rendering, hydration, configuration flag)?",
+      "Is that precondition actually present in your scenario? How can you confirm it?"
+    ],
+    "recommendation": "Before citing documentation as an explanation, explicitly verify and state which documented preconditions are and are not present in the reported scenario. If a precondition is absent, rule out that explanation.",
+    "expected_outcome": "Responders will provide grounded explanations based on verified context, avoiding the introduction of false leads that must later be explicitly ruled out.",
+    "source": [
+      {
+        "conversation_id": "case_2",
+        "root_cause": "User 2 matched keywords from documentation ('different IDs') to the symptom without verifying that the documented preconditions (server rendering, hydration) applied to the actual scenario. Missing verification of applicability.",
+        "evidence": "User 2: 'the useId Hook has a problem it says: \"With server rendering, useId requires an identical component tree on the server and the client...\" maybe this is the problem although I still don't know what the identical component tree on a server and a client is.' User 4: 'In your demo, you are NOT doing hydration'",
+        "case_summary": "User 2 cited hydration-related documentation as a possible cause without confirming that server rendering or hydration was occurring in the reproduction."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-5",
+    "title": "Bundled Sub-Questions in Multi-Participant Threads",
+    "category": "Undefined Scope",
+    "description": "When multiple participants with different skill levels interact in the same thread, sub-questions raised by less-experienced participants can be overlooked if bundled together with higher-level technical issues. Each distinct question should be explicitly separated and directly addressed to ensure all participants receive clarity.",
+    "intent": "Ensure that questions from all participants are acknowledged and answered, preventing knowledge gaps that may persist even as the main issue is resolved.",
+    "priority": "Low",
+    "confidence": "Medium",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving",
+      "Emotional/Personal"
+    ],
+    "trigger": "A participant raises multiple distinct questions together in one message, with mixed technical depth, and the thread continues without explicitly addressing each one.",
+    "detection_rules": "A message contains multiple questions separated by 'AND' or semicolons, or asks for feedback without clear prioritization. Subsequent responses address only some of the questions, leaving at least one unresolved.",
+    "clarification_questions": [
+      "Are you asking about [question A] AND [question B], or is one of these questions more important to you right now?",
+      "Should we address [specific question] separately from the main issue?"
+    ],
+    "recommendation": "When responding to a message with multiple questions, explicitly call out each question and provide an answer or explanation for each one. If a question is out of scope, acknowledge it and explain why.",
+    "expected_outcome": "All participants will have their questions addressed, reducing confusion and ensuring that knowledge is shared at appropriate depth levels.",
+    "source": [
+      {
+        "conversation_id": "case_3",
+        "root_cause": "User 2 bundled a beginner-level clarification request into a bug thread with an experienced reporter, and the two participants operated at different knowledge levels, so the mount-related sub-question was never explicitly scoped or answered.",
+        "evidence": "User 2: 'Is it supposed to Mount twice? ... please tell me what you think.' User 1 (reply): addresses only the ID ordering, not User 2's mount question.",
+        "case_summary": "User 2 raised both a double-ID issue and a double-mounting question, but only the ID issue received a response."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-6",
+    "title": "Self-Retracted Cross-Reference With Unresolved Relevance",
+    "category": "Ambiguous Reference",
+    "description": "When posting a cross-reference or related case that is later retracted, the retraction should fully resolve the relevance rather than leaving a dangling reference that adds noise to the thread. If relevance is uncertain, either verify before posting or omit the contribution.",
+    "intent": "Keep discussions focused by eliminating partially-resolved references that may confuse readers about whether a connection exists.",
+    "priority": "Low",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "A participant posts a tentative cross-reference or related case, then explicitly retracts or clarifies that it is unrelated within the same message or shortly after.",
+    "detection_rules": "A message contains a reference followed by a retraction phrase like 'Nope, actually that's unrelated', 'Never mind, that was a different issue', or 'Edit: turns out that's a different thing.' The retraction appears in the same thread but does not remove the initial reference entirely.",
+    "clarification_questions": [
+      "Is this related to the current issue, or should we set it aside as a separate case?"
+    ],
+    "recommendation": "Verify relevance before posting cross-references. If uncertain, run a quick verification (e.g., check issue tracker, test behavior) before including the reference. If a reference is unrelated, omit it entirely rather than posting and retracting.",
+    "expected_outcome": "Threads will remain focused on the actual issue without false leads or dangling references.",
+    "source": [
+      {
+        "conversation_id": "case_4",
+        "root_cause": "User 3 posted a tentative association before verifying it, then walked it back, leaving readers uncertain whether any connection remains. The contribution's relevance was never resolved to the actual thread topic.",
+        "evidence": "User 3: 'Not sure if related, but [sandbox] in Next.js App Dir... Hydration mismatch when using the useId hook... Edit: Nope, looks like vercel/next.js#53110 is a Next.js issue.'",
+        "case_summary": "User 3 introduced a possibly-related Next.js case, then self-retracted it as unrelated within the same post."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-7",
+    "title": "Undefined Success Criteria in Behavior Disputes",
+    "category": "Undefined Success Criteria",
+    "description": "Disagreements about whether behavior is correct or a 'bug' often stem from an unstated difference in expected contracts or guarantees. Participants may be evaluating the same behavior against different implicit standards (e.g., stability across all re-renders vs. stability only within a committed mount cycle). Agreement on the intended contract must precede debate about whether fixes are warranted.",
+    "intent": "Enable productive resolution of disputes by identifying the underlying difference in expected behavior rather than talking past each other.",
+    "priority": "Medium",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving",
+      "Planning/Decision"
+    ],
+    "trigger": "Participants disagree on whether a reported behavior is a bug, problem, or expected outcome, and neither has explicitly stated what the correct behavior should be.",
+    "detection_rules": "One participant says behavior is 'wrong' or 'unreliable', another says it's 'expected' or 'should not cause trouble', without either defining what the intended contract or guarantee is. Look for value judgments (good/bad, right/wrong) without stated criteria.",
+    "clarification_questions": [
+      "What do you expect the ID to be guaranteed to do? (e.g., remain the same across all re-renders, remain stable within a single mount, etc.)",
+      "Under what conditions should the ID change, and under what conditions should it stay the same?"
+    ],
+    "recommendation": "Before debating whether a behavior is acceptable, explicitly define and agree on the intended contract (e.g., 'IDs should remain stable across all re-renders' or 'IDs should be stable only within a committed mount lifecycle'). Then evaluate whether the actual behavior matches the contract.",
+    "expected_outcome": "Disagreements will shift from value judgments to verifiable contract compliance, enabling agreement on whether the behavior is acceptable and whether changes are warranted.",
+    "source": [
+      {
+        "conversation_id": "case_5",
+        "root_cause": "There is no shared, explicit definition of the expected contract of useId (stability across re-renders vs. stability only within hydration). The disagreement stems from an unstated success criterion, not a factual error.",
+        "evidence": "User 1: 'As it is right now, it could only be reliably used for input/label HTML IDs... so, at least, change the hook name right?' User 4: 'Also this usually should not cause trouble.'",
+        "case_summary": "User 1 and User 4 disagree on whether the ID instability is a real problem, rooted in an undefined criterion of what counts as correct behavior."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-8",
+    "title": "Non-Functional Code Examples With Signature Mismatch",
+    "category": "Missing Format/Data Spec",
+    "description": "Shared code examples should be internally consistent: function signatures, variable declarations, and usage within the function body must align. A mismatch (e.g., referencing a parameter that is not declared) may be intended as illustrative shorthand, but readers—especially beginners—may copy the example literally and encounter errors.",
+    "intent": "Ensure code examples are immediately usable and do not introduce confusion or copy-paste errors.",
+    "priority": "Low",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "A code example is shared in which a function parameter or variable is referenced in the function body but not declared in the function signature or scope.",
+    "detection_rules": "A function is declared (e.g., `function Inner()`) with no parameters, but the function body references a parameter (e.g., `props.id`). The mismatch is directly visible in the shared code.",
+    "clarification_questions": [
+      "Does the function `Inner` need a `props` parameter for this example to work?",
+      "Can you provide a complete, working version of this code example?"
+    ],
+    "recommendation": "Before sharing code examples, test them or verify that all signatures match usage. Include all necessary parameters and declarations. If you are intentionally providing shorthand, explicitly note what should be added.",
+    "expected_outcome": "Code examples will be self-consistent and immediately usable by readers, reducing confusion and supporting learning.",
+    "source": [
+      {
+        "conversation_id": "case_6",
+        "root_cause": "The code sample was written illustratively without ensuring the function signature matched its body, leaving the reader to infer the intended `function Inner(props)`. Missing precision in the shared code artifact.",
+        "evidence": "User 5: 'One workaround I found that respects React's rules... move the generation of such IDs to outside of the component' Code: `function Inner() { const id = props.id; ... }` — but `Inner` has no `props` parameter defined.",
+        "case_summary": "User 5's proposed code reads `props.id` inside `Inner`, but `Inner` is declared without a `props` argument."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-9",
+    "title": "Missing External Context in Technical References",
+    "category": "Missing Context",
+    "description": "References to external artifacts (code sandboxes, links, files) should include the actual resolvable content or embed essential details inline. Relying solely on out-of-band artifacts makes the conversation non-self-contained and forces responders to infer meaning from partial snippets rather than complete reproduction cases.",
+    "intent": "Ensure diagnosis and advice are grounded in verifiable, complete context that can be understood from the conversation transcript alone, reducing risk of incorrect assumptions about setup or behavior.",
+    "priority": "Medium",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "User references an external sandbox, link, or code repository by label or placeholder text without providing the actual URL or embedding the relevant code snippet.",
+    "detection_rules": "Look for patterns like 'visit this code sandbox', 'see the link', or 'check my repo' where the actual URL or content is not present in the conversation text. Placeholder text or bare labels without clickable/resolvable references indicate this issue.",
+    "clarification_questions": [
+      "Can you share the full URL or embed the relevant code snippet directly in this conversation?",
+      "What is the minimal reproducible example? Please paste the code or link here so we can review it without leaving the conversation."
+    ],
+    "recommendation": "When reporting a problem, paste the complete minimal reproducible example (code, configuration, error output) directly into the conversation. If referencing an external sandbox or repo, include the full URL and summarize the key setup details inline.",
+    "expected_outcome": "Responders and anyone reading the transcript later can understand the issue fully without needing external access, enabling accurate diagnosis and verifiable solutions.",
+    "source": [
+      {
+        "conversation_id": "Case 1",
+        "root_cause": "The reference to external context (the sandbox) is a bare label without the actual resolvable content embedded in the conversation, so anyone reading the transcript alone cannot verify the reproduction. The ambiguity arises from dependence on an out-of-band artifact rather than a communication gap in intent.",
+        "evidence": "Link to code example: code sandbox\nvisit this code sandbox",
+        "case_summary": "User repeatedly references a 'code sandbox' reproduction link, but the actual URL is never present in conversation text; responders had to infer code content from partial snippets instead of the referenced source."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-10",
+    "title": "Conflating Absence of Warning with Correctness",
+    "category": "Undefined Success Criteria",
+    "description": "In technical problem-solving, the absence of a warning or error message does not prove correctness. Success must be defined by conformance to the actual rule or specification, not by the presence or absence of a tool's diagnostic output. A missing warning may itself indicate a bug in the tool or an oversight in the code.",
+    "intent": "Prevent users from shipping code that appears to work (no warning) but actually violates underlying requirements, and ensure success criteria are grounded in defined correctness rather than symptom suppression.",
+    "priority": "High",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving",
+      "Planning/Decision"
+    ],
+    "trigger": "User treats the disappearance of a warning or error message as evidence that a pattern is now correct or supported, or frames the goal as making a warning/error go away rather than fixing the underlying issue.",
+    "detection_rules": "Look for statements like 'the warning disappears with pattern X, so it must be correct' or 'this approach has no error message' used as justification for soundness. Also detect when stated goal is 'make the warning/error go away' rather than 'fix the underlying behavior'.",
+    "clarification_questions": [
+      "What is the actual requirement or rule you need to follow? Does the code truly satisfy it, or only appear to because the warning is absent?",
+      "Is the goal to silence the diagnostic message, or to ensure the code is actually correct? These are different objectives.",
+      "Have you verified the absence of a warning against the documented behavior of the tool? Could the missing warning itself be a bug?"
+    ],
+    "recommendation": "Define success in terms of the actual requirement (e.g., 'hooks must only be called at the top level') rather than the state of diagnostic messages. Verify that the code meets the requirement independent of warnings. If a warning is missing when it should be present, treat that as a separate issue.",
+    "expected_outcome": "User understands the distinction between tool feedback and actual correctness, and evaluates code against the underlying rule rather than relying on diagnostic output as the success metric.",
+    "source": [
+      {
+        "conversation_id": "Case 2",
+        "root_cause": "User 1 used 'warning disappears' as an implicit success criterion, conflating the absence of a diagnostic message with the absence of the underlying rule violation. The ambiguity is a mismatch between the observable signal (warning) and the actual defined-correctness condition.",
+        "evidence": "The warning will disappear if we used useState() hook.\nI can see this occurs with the useEffect hook but there are no warning messages while using useState hook",
+        "case_summary": "User interpreted absence of a warning with useState as meaning that pattern is correct, implicitly treating 'no warning' as 'no problem,' but responders clarified that neither pattern is supported and the missing warning is itself a bug."
+      },
+      {
+        "conversation_id": "Case 3",
+        "root_cause": "The user framed the goal around suppressing the symptom (warning text) rather than the root defect (conditional hook call), leaving ambiguous whether they wanted the warning gone or the code fixed. This stems from treating a misleading warning as the primary problem instead of a signal.",
+        "evidence": "The expected behavior\nthe warning message should disappear.",
+        "case_summary": "User stated expected behavior is that the warning should disappear, but responders revealed the real desired outcome is a correct warning explaining the actual problem—the warning should exist, just be accurate. The user's stated goal conflicted with the correct resolution."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-11",
+    "title": "Deliverable Type Not Specified (Investigation vs. Implementation)",
+    "category": "Missing Format/Data Spec",
+    "description": "When a task uses words like 'investigate,' 'propose an approach,' or 'research,' the deliverable type remains ambiguous between a written proposal/report and a working functional prototype. Without explicit clarification, the implementer may choose the wrong form, resulting in a misaligned artifact.",
+    "intent": "Ensure the correct deliverable form is produced before work begins, avoiding rework when a research report and a coded prototype are fundamentally different outputs.",
+    "priority": "High",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Task/Action",
+      "Planning/Decision"
+    ],
+    "trigger": "A task uses 'investigate,' 'propose,' 'research,' or 'approach' without specifying whether the output should be a written document or a working prototype.",
+    "detection_rules": "Ticket explicitly requests investigation/proposal language; implementer commits to building a working demo or vice versa; no explicit mention of deliverable format (report, prototype, document, code).",
+    "clarification_questions": [
+      "Is the deliverable a written proposal/investigation report, or a working prototype/implementation?",
+      "What form should the final artifact take (document, code, demo, presentation)?"
+    ],
+    "recommendation": "In tickets requesting investigation or proposals, explicitly state: 'Deliverable: [written report / working prototype / both]. Format: [Figma / PDF / GitHub branch / screen recording]. Due: [date].'",
+    "expected_outcome": "The implementer and requester share a single agreed definition of what 'done' looks like before any work begins.",
+    "source": [
+      {
+        "conversation_id": "Case 1",
+        "root_cause": "The word 'investigate/propose an approach' was interpreted by the Engineer as 'implement a working demo.' The task deliverable type (research report vs. functional prototype) was never explicitly disambiguated, and the PM's later behavior (reviewing running carousels) tacitly accepted the reinterpretation.",
+        "evidence": "PM: 'Investigate and propose an implementation approach... Research and propose an implementation approach including: Library selection... technical considerations or concerns'. PM: 'provide the investigation report for this ticket by 4/15'. Engineer: 'I will try to record a screen slideshow of images for the video section on the homepage by the end of April 15th.'",
+        "case_summary": "Ticket requested an investigation report proposing an implementation approach, but Engineer responded by building and recording a working carousel prototype instead of a research document."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-12",
+    "title": "Vague Visual Behavior and Ambiguous References",
+    "category": "Ambiguous Terminology & Ambiguous Reference",
+    "description": "Vague visual instructions ('rotate,' 'make it look like X,' 'the behavior shown on the sample') combined with multiple similar media assets referenced generically ('the sample,' 'your recording,' 'this one') create confusion about which specific behavior is intended. Without a single canonical reference and concrete parameters, implementers must guess, leading to iterative rework.",
+    "intent": "Eliminate rework cycles caused by unclear visual specifications and unnamed media assets by establishing a single authoritative reference and concrete parameters before work begins.",
+    "priority": "High",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving",
+      "Document/Communication"
+    ],
+    "trigger": "Instructions use vague visual verbs ('rotate,' 'look like,' 'behave like') or reference multiple similar assets by generic labels ('the sample,' 'your recording,' 'this video').",
+    "detection_rules": "Implementer asks 'this carousel, right? Or something else?' or references multiple CodePens/Drive links without stable names; feedback is repeatedly sent because 'the behavior' still doesn't match; generic pronouns ('your,' 'my,' 'the') point to different assets.",
+    "clarification_questions": [
+      "Which single reference artifact (URL, file, link) defines the exact target behavior?",
+      "What specific parameters define the visual behavior (rotation axis, easing, timing, item positioning, visibility rules)?",
+      "Are all parties looking at the same version of the reference sample?"
+    ],
+    "recommendation": "Provide a single canonical reference (stable URL or named file) and specify concrete visual parameters: 'Target behavior: [specific CodePen link / Figma frame / video timestamp]. Rotation: [axis, duration, easing]. Items visible: [count and position]. Reference name: [unique label].'",
+    "expected_outcome": "All parties reference the same canonical source by name; implementer can produce output matching a single defined specification without clarification loops.",
+    "source": [
+      {
+        "conversation_id": "Case 2",
+        "root_cause": "'Rotate' and 'the behavior' are underspecified visual descriptions with no concrete definition (rotation axis, easing, item positioning). Each party referenced a different 'sample' (sample page, sample video, CodePen, PM's recording), so 'the behavior' had no single agreed referent.",
+        "evidence": "PM: 'Could you make it look like it rotates? Could you replicate the behavior shown on the sample page?' Engineer: 'Please confirm that you want me to follow this carousel, right? Or something else? https://codepen.io/dudleystorey/pen/DvZjLz' PM: 'There are several behaviors that differ from the sample video and sample page...'",
+        "case_summary": "'Rotate' and 'the behavior shown on the sample page' was vague enough that Engineer had to guess at a reference CodePen, and PM kept sending new samples because behavior still didn't match."
+      },
+      {
+        "conversation_id": "Case 5",
+        "root_cause": "Both parties used non-unique referents ('the sample,' 'your recording,' 'this one') for a growing pool of similar media assets. Without stable naming, each 'the sample' could point to different files.",
+        "evidence": "Engineer: 'video_mobile.mp4' / 'a screen recording of the carousel' (link). PM: 'I have attached the video from the sample page. Recording 2026-04-14 173853.mp4'. PM: 'sample.png' / Engineer: 'three-items.webm' / various Google Drive links.",
+        "case_summary": "Numerous artifacts ('sample page,' 'sample video,' 'the sample I attached,' 'your recording,' multiple CodePens and Drive links) are referenced by generic labels, making it unclear which asset each instruction refers to."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-13",
+    "title": "Conflicting Technical Constraints (Fixed Count vs. Visual Behavior)",
+    "category": "Conflicting Requirement",
+    "description": "When a task specifies both a fixed count constraint and a target visual behavior sourced from different artifacts, these may be technically incompatible. A motion effect designed with N items may not reproduce identically with M < N items, forcing a choice between constraints.",
+    "intent": "Identify constraint conflicts early by verifying that fixed parameters (count, dimensions, etc.) can technically support the desired behavior before committing to implementation.",
+    "priority": "High",
+    "confidence": "High",
+    "status": "Draft",
+    "applicable_to": [
+      "Technical/Problem-Solving",
+      "Planning/Decision"
+    ],
+    "trigger": "A requirement specifies a fixed count or dimension AND references a visual behavior from a sample/reference that may have been built with different parameters.",
+    "detection_rules": "Implementer states that the sample behavior requires more items/different dimensions than specified; multiple item counts mentioned (3 vs. 6 vs. 8); engineer explicitly notes 'cannot literally reproduce' the sample with the given constraint.",
+    "clarification_questions": [
+      "What is the authoritative item count, and is it a hard constraint or a preference?",
+      "Can the target visual behavior be achieved with the specified item count, or does it require adjustment?",
+      "If the sample was built with more items, how should the motion adapt with fewer items?"
+    ],
+    "recommendation": "Before committing, verify constraints: 'Fixed parameters: [count=3]. Target behavior: [reference]. Check: Can [target behavior] be achieved with [count=3]? If not, which takes priority: count or behavior? Acceptable compromise: [fallback option].'",
+    "expected_outcome": "Implementer confirms all constraints are compatible or requester explicitly chooses which constraint takes priority, avoiding rework.",
+    "source": [
+      {
+        "conversation_id": "Case 3",
+        "root_cause": "The PM specified both an item count (3) and a target visual behavior (from a sample built with more items) without recognizing they were technically coupled/conflicting. The Engineer repeatedly surfaced that '3 items' cannot literally reproduce a sample built on 6–8 items.",
+        "evidence": "Requirements: 'Display 3 video thumbnails (images) in a carousel'. PM: 'please display 3 items and do not loop. When a side thumbnail moves to the center, the thumbnail on the opposite side should not be visible.' Engineer: 'A carousel design by Client only has 3 items, so the behavior looks fine in the Codepen, but it needs 6 items.' Engineer: 'To display it the same way as your recording, you need 8 items. However, with 3 items, the rotation will display them as in my recording.'",
+        "case_summary": "Requirement fixed 3 items, but the visual behavior demonstrated in the sample technically required 6 or 8 items to reproduce, creating a conflict that forced repeated clarification."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-14",
+    "title": "Unfinalized Design Marked as Authoritative Reference",
+    "category": "Conflicting Requirement",
+    "description": "A task instructs an implementer to match or follow a design that is explicitly stated as unfinalized or pending confirmation. This creates conflicting directives: 'match the design' vs. 'the design is not finalized,' leaving unclear which version is authoritative.",
+    "intent": "Prevent rework by deferring implementation until the authoritative design version is confirmed, rather than coding against a moving target.",
+    "priority": "Medium",
+    "confidence": "Medium",
+    "status": "Draft",
+    "applicable_to": [
+      "Planning/Decision",
+      "Technical/Problem-Solving"
+    ],
+    "trigger": "Task simultaneously states 'match the design' and acknowledges the design is 'not finalized,' 'pending,' or 'in flux.'",
+    "detection_rules": "Ticket contains both 'The design will need to match [reference]' and 'design is not finalized' or 'Spec is still pending final confirmation'; no date or milestone given for when design becomes final.",
+    "clarification_questions": [
+      "Which version of the design is authoritative right now?",
+      "When will the design be finalized, and should implementation wait or proceed with the current version knowing rework may be needed?",
+      "If design is still pending, should the Engineer implement based on the latest available version or block until final design is approved?"
+    ],
+    "recommendation": "Before starting, confirm: 'Authoritative design: [Figma link / version / date]. Status: [finalized / in review / pending]. If pending, implementation [waits / proceeds with rework risk / uses [specific version] as working baseline].'",
+    "expected_outcome": "Implementer either waits for final design or explicitly accepts rework risk with the current version; no surprise changes after implementation begins.",
+    "source": [
+      {
+        "conversation_id": "Case 4",
+        "root_cause": "Two contradictory statements about design finalization coexist. 'What has been provided by Client' doesn't specify a version or artifact when the design is explicitly still in flux.",
+        "evidence": "PM: 'The design will need to match what has been provided by Client. (Such as the spacing between thumbnails and the rounded corner design.)' PM (Overview): 'Still the homepage Figma design is not finalized... Spec is still pending final confirmation'",
+        "case_summary": "PM instructed Engineer to match 'the design provided by Client,' yet the same ticket states the design/Figma is not finalized and spec is pending, leaving unclear which design is authoritative."
+      }
+    ]
+  },
+  {
+    "knowledge_id": "KB-15",
+    "title": "Undefined Success Criteria ('Looks Fine' Ambiguity)",
+    "category": "Undefined Success Criteria",
+    "description": "Feedback phrases like 'looks fine' or 'looks good' are ambiguous between final approval ('done, no further changes') and progress feedback ('on the right track, more adjustments needed'). Without explicit acceptance criteria, 'fine' can be misinterpreted as sign-off.",
+    "intent": "Clarify approval thresholds and prevent false sign-off by distinguishing forward-looking feedback ('right direction') from final acceptance ('approved, complete').",
+    "priority": "Medium",
+    "confidence": "Medium",
+    "status": "Draft",
+    "applicable_to": [
+      "Planning/Decision",
+      "Document/Communication"
+    ],
+    "trigger": "Requester gives ambiguous approval feedback ('looks fine,' 'looks good,' 'acceptable') while continuing to issue corrective requirements afterward.",
+    "detection_rules": "Requester states 'The behavior looks fine,' then later sends more corrective feedback or requirement changes; no explicit 'approved,' 'done,' or 'ready to ship' statement; implementer continues making changes after positive feedback.",
+    "clarification_questions": [
+      "Does 'looks fine' mean this is approved and final, or are more adjustments still expected?",
+      "What is the explicit acceptance criteria for 'done'?",
+      "Should I continue iterating or is this ready to move to the next phase?"
+    ],
+    "recommendation": "Replace ambiguous feedback with explicit acceptance language: 'Approved and final' or 'On the right track; please also adjust [specific item].' Define done-ness: 'Acceptance criteria: [explicit checklist]. Signed off: [yes/no].'",
+    "expected_outcome": "Implementer knows whether to continue or stop; requester's feedback is unambiguous about approval status.",
+    "source": [
+      {
+        "conversation_id": "Case 6",
+        "root_cause": "'Looks fine' was ambiguous between 'acceptable as-is' and 'on the right track but still needs adjustments.' The approval threshold (what counts as done) was undefined.",
+        "evidence": "Engineer: 'If you would like the behavior shown on the sample page, I can change it tomorrow.' PM: 'The behavior looks fine.' ... later ... PM: 'please display 3 items and do not loop...'",
+        "case_summary": "PM said 'The behavior looks fine' at one point, then continued issuing corrective behavior requirements, so 'fine' did not mean final approval."
+      }
+    ]
+  }
+]
