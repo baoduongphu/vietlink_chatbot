@@ -5,7 +5,6 @@ VietLink RAG turns an initial request into a clearer, implementation-ready reque
 ## Features
 
 - Select GPT, Claude, or Gemini as the clarification provider.
-- Analyze uploaded or pasted conversations and extract reusable ambiguity KB entries.
 - Retrieve provider-specific KB entries from `data/<provider>/kbs.json`.
 - Use direct, sentence-level, or normalized retrieval based on input length.
 - Ask a configurable number of clarification questions.
@@ -81,18 +80,6 @@ VietLink RAG turns an initial request into a clearer, implementation-ready reque
 
    Optional model overrides are documented in `.env.example`.
 
-   The analysis extraction service uses separate model variables for its two
-   stages:
-
-   ```env
-   OPENAI_ANALYSIS_MODEL=gpt-5
-   OPENAI_EXTRACTION_MODEL=gpt-5-mini
-   ANTHROPIC_ANALYSIS_MODEL=claude-opus-4-8
-   ANTHROPIC_EXTRACTION_MODEL=claude-haiku-4-5-20251001
-   GOOGLE_ANALYSIS_MODEL=gemini-pro-latest
-   GOOGLE_EXTRACTION_MODEL=gemini-flash-lite-latest
-   ```
-
 5. Verify that the KB files exist and are valid JSON arrays:
 
    ```text
@@ -116,30 +103,6 @@ VietLink RAG turns an initial request into a clearer, implementation-ready reque
    ```
 
    Open the local URL printed by Streamlit, usually `http://localhost:8501`.
-
-The sidebar's **Service** selector exposes both workflows:
-
-- **Requirement clarification** runs the existing RAG clarification chatbot.
-- **Analysis extraction** runs the two-stage analysis/extraction service, displays
-  the analysis report and KB entries, and provides Markdown and JSON downloads.
-
-## Deploy to Streamlit Community Cloud
-
-1. Push the repository to GitHub and create a Streamlit Community Cloud app.
-2. Set the entrypoint to `app.py`.
-3. Add at least one provider key under the app's **Secrets** settings:
-
-   ```toml
-   OPENAI_API_KEY = "..."
-   ANTHROPIC_API_KEY = "..."
-   GOOGLE_API_KEY = "..."
-
-   # Optional analysis extraction overrides
-   OPENAI_ANALYSIS_MODEL = "gpt-5"
-   OPENAI_EXTRACTION_MODEL = "gpt-5-mini"
-   ```
-
-4. Deploy the app. Both chatbot services are available from the sidebar.
 
 ## Workflow
 
