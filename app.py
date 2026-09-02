@@ -1,4 +1,4 @@
-"""Streamlit interface for the VietLink requirement clarification workflow."""
+"""Streamlit entrypoint for VietLink's chatbot services."""
 
 from __future__ import annotations
 
@@ -13,7 +13,24 @@ load_dotenv()
 
 def load_streamlit_secrets() -> None:
     """Expose Streamlit Cloud secrets to provider SDKs as environment variables."""
-    for name in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY"):
+    names = (
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "GOOGLE_API_KEY",
+        "OPENAI_MODEL",
+        "OPENAI_LIGHT_MODEL",
+        "OPENAI_ANALYSIS_MODEL",
+        "OPENAI_EXTRACTION_MODEL",
+        "ANTHROPIC_MODEL",
+        "ANTHROPIC_LIGHT_MODEL",
+        "ANTHROPIC_ANALYSIS_MODEL",
+        "ANTHROPIC_EXTRACTION_MODEL",
+        "GOOGLE_MODEL",
+        "GOOGLE_LIGHT_MODEL",
+        "GOOGLE_ANALYSIS_MODEL",
+        "GOOGLE_EXTRACTION_MODEL",
+    )
+    for name in names:
         if not os.getenv(name):
             secret = st.secrets.get(name)
             if secret:
@@ -22,7 +39,10 @@ def load_streamlit_secrets() -> None:
 
 load_streamlit_secrets()
 
-from rag.config import ConfigurationError, PROVIDER_REGISTRY, RAGConfig
+from analysis_extraction import resolve_models
+from rag.config import PROVIDER_REGISTRY, RAGConfig
+from ui.analysis_extraction_page import render as render_analysis_extraction
+from ui.clarification_page import render as render_clarification
 
 if TYPE_CHECKING:
     from rag.rag_system import RAGSystem
@@ -30,30 +50,45 @@ if TYPE_CHECKING:
 
 st.set_page_config(page_title="VietLink RAG", page_icon="VL", layout="centered")
 st.title("VietLink Requirement Clarifier")
-st.caption("Retrieve relevant knowledge, clarify missing details, and produce an implementation-ready request.")
 
 with st.sidebar:
     st.header("Configuration")
-    provider = st.selectbox("Provider", list(PROVIDER_REGISTRY), format_func=lambda value: PROVIDER_REGISTRY[value]["label"])
+    service_name = st.radio("Service", ("Requirement clarification", "Analysis extraction"))
+    provider = st.selectbox(
+        "Provider",
+        list(PROVIDER_REGISTRY),
+        format_func=lambda value: PROVIDER_REGISTRY[value]["label"],
+    )
     top_k = st.slider("Candidate KB entries", 1, 15, 5)
     similarity_threshold = st.slider("Similarity threshold", 0.0, 1.0, 0.0, 0.05)
     max_tokens = st.number_input("Maximum output tokens", min_value=256, max_value=32768, value=8192, step=256)
     max_question_rounds = st.slider("Maximum clarification rounds", 1, 10, 3)
-    st.caption(f"Generation model: {PROVIDER_REGISTRY[provider]['generation_model']}")
+    if service_name == "Analysis extraction":
+        analysis_model, extraction_model = resolve_models(provider)
+        st.caption(f"Analysis model: {analysis_model}")
+        st.caption(f"Extraction model: {extraction_model}")
+    else:
+        st.caption(f"Generation model: {PROVIDER_REGISTRY[provider]['generation_model']}")
     if st.button("New session", use_container_width=True):
         st.session_state.pop("session", None)
+        st.session_state.pop("extraction_result", None)
         st.session_state.pop("configuration_key", None)
         st.rerun()
 
-configuration_key = (provider, top_k, similarity_threshold, max_tokens, max_question_rounds)
+configuration_key = (service_name, provider, top_k, similarity_threshold, max_tokens, max_question_rounds)
 if st.session_state.get("configuration_key") != configuration_key:
     st.session_state.pop("session", None)
+    st.session_state.pop("extraction_result", None)
     st.session_state.configuration_key = configuration_key
 
 
 @st.cache_resource(show_spinner=False)
 def get_system(
-    provider_name: str, result_count: int, threshold: float, output_token_limit: int, question_round_limit: int
+    provider_name: str,
+    result_count: int,
+    threshold: float,
+    output_token_limit: int,
+    question_round_limit: int,
 ) -> "RAGSystem":
     from rag.rag_system import RAGSystem
 
@@ -70,43 +105,7 @@ def current_system() -> "RAGSystem":
     return get_system(provider, top_k, similarity_threshold, max_tokens, max_question_rounds)
 
 
-session = st.session_state.get("session")
-if session is None:
-    request = st.text_area("Initial request", height=160, placeholder="Describe what you need to accomplish...")
-    if st.button("Analyze request", type="primary"):
-        try:
-            with st.spinner("Retrieving knowledge and analyzing the request..."):
-                st.session_state.session = current_system().start(request)
-            st.rerun()
-        except (ConfigurationError, ValueError) as exc:
-            st.error(str(exc))
-        except Exception as exc:
-            st.error(f"Unable to start the session: {type(exc).__name__}: {exc}")
+if service_name == "Analysis extraction":
+    render_analysis_extraction(provider, int(max_tokens))
 else:
-    st.subheader("Original request")
-    st.write(session.original_request)
-    if session.pending_question:
-        st.subheader(f"Clarification question ({len(session.turns) + 1}/{max_question_rounds})")
-        st.write(session.pending_question)
-        answer = st.text_area("Your answer", key=f"answer_{len(session.turns)}")
-        if st.button("Continue", type="primary"):
-            try:
-                with st.spinner("Updating the clarified request..."):
-                    st.session_state.session = current_system().answer(session, answer)
-                st.rerun()
-            except (ConfigurationError, ValueError) as exc:
-                st.error(str(exc))
-            except Exception as exc:
-                st.error(f"Unable to process the answer: {type(exc).__name__}: {exc}")
-    else:
-        st.subheader("Clarified request")
-        st.success(session.clarified_request)
-        if session.assumptions_made:
-            st.caption("Assumptions: " + "; ".join(session.assumptions_made))
-    with st.expander("Retrieved knowledge-base entries"):
-        st.caption(f"Retrieval strategy: {session.retrieval_strategy}")
-        if not session.candidates:
-            st.write("No candidate entry exceeded the similarity threshold.")
-        for entry in session.candidates:
-            title = entry.get("title") or entry.get("trigger")
-            st.write(f"**{entry['knowledge_id']}** - {title} (score: {entry['retrieval_score']})")
+    render_clarification(current_system, max_question_rounds)
